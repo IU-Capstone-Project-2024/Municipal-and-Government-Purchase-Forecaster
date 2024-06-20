@@ -1,0 +1,59 @@
+version: '3.8'
+
+services:
+  aiogram_bot:
+    build: ./aiogram_bot
+    restart: always
+    networks:
+      - backend_network
+    depends_on:
+      - java_backend
+      - tg_bot_backend
+
+  java_backend:
+    build: ./backend_java
+    restart: always
+    environment:
+      GPT_TOKEN:
+    ports:
+      - "8090:8090"
+    networks:
+      - backend_network
+
+  tg_bot_backend:
+    build: ./tg_bot_backend
+    restart: always
+    ports:
+      - "9000:5000"
+    depends_on:
+      - keycloak
+
+  keycloak:
+    build: ./keycloak
+    restart: always
+    ports:
+      - "9010:8080"
+    depends_on:
+      - postgres
+
+  postgres:
+    image: postgres:latest
+    restart: on-failure
+    environment:
+      POSTGRES_DB: keycloak
+      POSTGRES_USER: keycloak
+      POSTGRES_PASSWORD: postgrepass12345
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  mongodb:
+    image: mongo
+    restart: always
+    ports:
+      - "27017:27017"
+
+networks:
+  backend_network:
+
+volumes:
+  postgres_data:
