@@ -1,128 +1,130 @@
-# Procurement Forecasting and Planning Service
+# Сервис Прогнозирования и Планирования Закупок
 
-This service leverages past procurement data and accounting information to:
-- Visualize statistics
-- Forecast procurement needs
-- Prepare data for procurement planning
+Этот сервис использует данные о прошлых закупках и бухгалтерскую информацию для:
+- Визуализации статистики
+- Прогнозирования потребностей в закупках
+- Подготовки данных для планирования закупок
 
-The goal of the service is to reduce the labor required by government institutions for procurement planning by automating the forecasting of product needs and their quantities.
+Цель сервиса - сократить трудозатраты и человекачасы государственных учреждений на планирование закупок, автоматизируя прогнозирование потребностей в продуктах и их количестве.
 
-## Features
+## Функции
 
-- **Chat-Bot Interface**: Interact with the service through a user-friendly chat-bot.
-- **Data Consolidation**: Integrates past procurement and accounting data.
-- **Forecasting**: Uses machine learning models to predict future procurement needs.
-- **Visualization**: Provides graphical representations and reports of procurement data.
-- **Prediction Correcting In Place**: The user may change the resulting file in bot, withoud additional tools.
+- **Чат-бот интерфейс**: Взаимодействие с сервисом через удобный интерфейс чат-бота.
+- **Консолидация данных**: Интеграция данных о прошлых закупках и бухгалтерской информации.
+- **Прогнозирование**: Использование моделей машинного обучения для предсказания будущих потребностей в закупках.
+- **Визуализация**: Предоставление графических представлений и отчетов о данных по закупкам.
+- **Коррекция прогнозов на месте**: Пользователь может изменить результирующий файл в боте без использования дополнительных инструментов.
+- **Мониторинг обновлений в ФЗ**: В случае изменения в 44 ФЗ пользователь получает уведомление о изменение в законе.
+- **Подгрузка новых данных**: Возможность подгрузить новые таблицы со складскими остатками и обортными ведомостями
+- **Отслеживание остатка товара**: Пользователь может выбрать/удалить товары для отслеживания остатков на складе
 
-## Architecture
+## Архитектура
 
-The architecture consists of the following key components:
+Архитектура включает в себя следующие ключевые компоненты:
 
-1. **User Interface (UI)**
-   - Chat-bot integrated with a popular messenger Telegram.
-   
-2. **Dialog Management Service**
-   - Serves a user with friendly interface.
-   - Handles user requests and manages dialog flows using NLP.
-   
-4. **Data Processing Service**
-   - Consolidates, cleans, validates, and pre-processes procurement data.
-   
-5. **Analytics and Forecasting Service**
-   - Analyzes historical data and uses ML model called ARIMA for forecasting.
-   
-6. **Data Visualization Service**
-   - Creates charts and reports for data presentation.
-   
-7. **Database**
-   - Stores procurement data, accounting data, and analysis results using and NoSQL (MongoDB) databases.
-   
-8. **Authentication and Authorization Service**
-   - Manages user access to different service functions.
-   - Uses keycloak, a very secure and popular application.
+1. **Telegram бот**
+   - Взаимодействие пользователя с сервисом осуществляется через Telegam бота
+2. **Java бэкенд**
+   - API с которым взаимодействует Telegram бот
+   - Документация бэкенда доступна по [ссылке](https://dema-koder.github.io/Service-for-forecasting-and-formation-of-purchases/)
+   - Описание API через [Swagger](http://193.124.33.166:8090/swagger-ui/index.html#/)
+3. **MongoDB**
+   - Основная база данных для проекта. Внутри хранятся складские остатки, обортные ведомости и информация об отслеживаемых товарах для каждого пользователя
+4. **Python Scripts**
+   - Скрипты вызываемые бэкендом для прогнозирования и визуализации
+5. **Keycloak**
+   - Система авторизации
 
-## Technology Stack
+## Подробное описание архитектуры
 
-- **Chat-Bot and Interface**: Python, Aiogram
-- **Data Processing and Analysis**: Python, pandas, scikit-learn
-- **Database**: MongoDB
-- **Visualization**: Python, pandas, matplotlib
-- **Infrastructure and Deployment**: Docker, Docker Compose
+Более подробная архитектура, мотивация, пользовательские истории и документация в целом доступна по [ссылке](https://disk.yandex.ru/i/2PvJ1W_Fh12VQQ)
 
-## Getting Started
+![Архитектура приложения текст](image_2024-06-23_15-52-08.png)
 
-### Prerequisites
+## Технологический стек
 
-- Docker
-- Python 3.8+
-- MongoDB
+- **Чат-бот и интерфейс**: Python, Aiogram, PostgreSQL
+- **Обработка и анализ данных**: Python, pandas, scikit-learn
+- **База данных**: MongoDB
+- **Визуализация**: Python, pandas, matplotlib
+- **Инфраструктура и развертывание**: Docker, Docker Compose
+- **Бэкенд**: Java, SpringBoot, ChatGPT
+- **Документация**: Swagger, Archi, OpenAPI
 
-### Installation
+## Начало работы
 
-1. **Clone the repository**:
+### Предварительные требования
+
+- Docker/Docker Compose
+
+### Установка
+
+1. **Клонируйте репозиторий**:
     ```sh
     git clone https://github.com/yourusername/procurement-forecasting-service.git
     cd procurement-forecasting-service
     ```
 
-2. **Set up the environment**:
-    - Create a `.env` file and populate it with the necessary environment variables.
-    - Example:
-      ```env
-      DATABASE_URL=postgresql://username:password@localhost:5432/procurement_db
-      MONGO_URL=mongodb://localhost:27017
-      ```
+2. **Настройте окружение**:
+   - Заполните пропуски в `docker-compose.yml`
+   - Пример:
+     ```env
+     DATABASE_URL: postgresql://username:password@localhost:5432/procurement_db
+     MONGO_URL: mongodb://localhost:27017
+     ...
+     ```
 
-3. **Build and run the services using Docker**:
+3. **Соберите и запустите сервисы с помощью Docker**:
     ```sh
     docker-compose up --build
     ```
 
-### Usage
+### Использование
 
-1. **Access the chat-bot**:
-   - Access the chatbot in Telegram
+1. **Доступ к чат-боту**:
+   - Откройте чат-бот в Telegram
 
-2. **Interact with the chat-bot**:
-   - Use natural language to request procurement data, forecasts, and visualizations.
-   - Use friendly and simple buttons to do the same.
+2. **Взаимодействие с чат-ботом**:
+   - Используйте естественный язык для запроса данных о закупках, прогнозов и визуализаций.
+   - Используйте удобные и простые кнопки для выполнения тех же действий.
 
+### Взаимодействие пользователя с сервисом
+1. Сначала введите команду /start в боте.
 
-### User view and flow of the service
-1. Firstly, you need to type /start in bot.
+2. Авторизуйтесь с помощью Keycloak через ссылку, предоставленную ботом.
 
+3. Подтвердите, что вы авторизованы
+   a. Примите пользовательский случай
 
-2. Authorize with keycloak via link wich bot has provided you
+   b. Отклоните пользовательский случай
 
+4. Выберите, что вы хотите сделать
+   1. Используйте кнопки, тогда поток будет простым: выберите опцию и введите параметр, который запросит бот.
+   2. Введите в ваше сообщение, выбрав опцию и ее параметры, например: Найди сколько осталось на складе бумаги.
 
-3. Accept that you authorized
-   a. Accept user case
+6. Получите ответ и визуализации, если ваш запрос был успешен.
 
-   b. Decline user case
+7. Если вы хотите сохранить запрашиваемый прогноз, вы можете скачать json-файл, отправленный ботом.
+8. Если вы хотите изменить json в Telegram, выберите кнопку для редактирования.
+9. Обновите или оставьте параметры json без изменений.
+10. Сохраните обновленный json.
 
-4. Select what do you want to do
-   1. Use buttons te flow then is simple: choose option and write a parameter that bot asks from you
-   2. Type in your message with choosing the option and its parameters, e.g. Найди сколько осталось на складе бумаги.
+## Пример использования бота
 
-6. Get the response and visuals if your request succeed
+![Снимок экрана 1](/images_for_readme/Снимок_экрана_1.png)
+![Снимок экрана 2](/images_for_readme/Снимок_экрана_2.png)
+![Снимок экрана 3](/images_for_readme/Снимок_экрана_4.png)
 
-7. If you want to save the requested forecast, you can download tha json-file that was sent by bot
-8. If you want to change the json in Telegram itself choose the button for editing
-9. Update or keep as it was parameters of json
-10. Save the updated json
+## Участие
 
-## Contributing
+Мы приветствуем участие! Пожалуйста, следуйте этим шагам:
 
-We welcome contributions! Please follow these steps:
+1. Форкните репозиторий.
+2. Создайте новую ветку (`git checkout -b feature/YourFeature`).
+3. Закоммитьте ваши изменения (`git commit -am 'Add new feature'`).
+4. Запушьте в ветку (`git push origin feature/YourFeature`).
+5. Создайте новый Pull Request.
 
-1. Fork the repository.
-2. Create a new branch (`git checkout -b feature/YourFeature`).
-3. Commit your changes (`git commit -am 'Add new feature'`).
-4. Push to the branch (`git push origin feature/YourFeature`).
-5. Create a new Pull Request.
+## Лицензия
 
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
+Этот проект лицензирован по лицензии MIT - см. файл [LICENSE](LICENSE) для подробностей.

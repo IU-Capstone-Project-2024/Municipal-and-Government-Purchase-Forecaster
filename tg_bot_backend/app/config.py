@@ -1,7 +1,7 @@
 from os import getenv
 from dotenv import load_dotenv
 
-load_dotenv(dotenv_path="../tg_back_conf.env")
+load_dotenv(dotenv_path="./tg_back_conf.env")
 
 class Config:
     KEYCLOAK_URL = getenv("KEYCLOAK_URL")

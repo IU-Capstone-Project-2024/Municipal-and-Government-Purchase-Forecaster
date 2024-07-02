@@ -35,14 +35,16 @@
             font-size: 1.3rem;
             font-weight: 400;
         }
-        button {
-            margin-top: 1.5rem;
+        a.button {
+            display: inline-block;
+            margin-top: 2rem;
             padding: 0.7rem 1.5rem;
             border: none;
             border-radius: 5px;
             background: #FFFFFF;
             color: #121212;
-            font-size: 1rem;
+            font-size: 1.6rem;
+            text-decoration: none;
             cursor: pointer;
             transition: background 0.3s ease-in-out;
         }
@@ -62,15 +64,9 @@
     </style>
 </head>
 <body>
-    <script>
-    function confirmClose() {
-            window.close();
-    }
-    </script>
     <div class="container">
         <h1>Вход в систему успешно выполнен</h1>
-        <p>Теперь можно покинуть страницу</p>
-        <button onclick="confirmClose()">Покинуть страницу</button>
+        <a href="https://t.me/zakupk_bot" class="button">Вернуться в Telegram бота</a>
     </div>
 </body>
 </html>

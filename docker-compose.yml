@@ -2,26 +2,25 @@ version: '3.8'
 
 services:
   aiogram_bot:
-    build: ./aiogram_bot
+    build: ./tg_bot
     restart: always
-    networks:
-      - backend_network
+    container_name: aiogram_bot
     depends_on:
       - java_backend
       - tg_bot_backend
 
   java_backend:
-    build: ./backend_java
+    build: ./backend
     restart: always
     environment:
-      GPT_TOKEN:
+      GPT_TOKEN: ...
+      MONGO_URL: ...
     ports:
       - "8090:8090"
-    networks:
-      - backend_network
 
   tg_bot_backend:
     build: ./tg_bot_backend
+    container_name: tg_bot_backend
     restart: always
     ports:
       - "9000:5000"
@@ -30,6 +29,7 @@ services:
 
   keycloak:
     build: ./keycloak
+    container_name: keycloak
     restart: always
     ports:
       - "9010:8080"
@@ -38,22 +38,28 @@ services:
 
   postgres:
     image: postgres:latest
+    container_name: postgres
     restart: on-failure
     environment:
-      POSTGRES_DB: keycloak
-      POSTGRES_USER: keycloak
-      POSTGRES_PASSWORD: postgrepass12345
+      POSTGRES_DB: ...
+      POSTGRES_USER: ...
+      POSTGRES_PASSWORD: ...
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
   mongodb:
-    image: mongo
+    image: mongo:latest
+    container_name: mongodb
     restart: always
     ports:
       - "27017:27017"
-
-networks:
-  backend_network:
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ...
+      MONGO_INITDB_ROOT_PASSWORD: ...
+    volumes:
+      - mongodb_data:/data/db
 
 volumes:
+  mongodb_data:
+    driver: local
   postgres_data:

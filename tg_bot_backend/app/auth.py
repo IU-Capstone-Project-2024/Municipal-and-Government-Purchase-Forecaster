@@ -12,6 +12,9 @@ keycloak_openid = KeycloakOpenID(server_url=Config.KEYCLOAK_URL,
                                  realm_name=Config.REALM_NAME,
                                  client_secret_key=Config.CLIENT_SECRET_KEY)
 
+load_dotenv("./tg_conf.env")
+REDIRECT_URL = os.getenv('REDIRECT_URL')
+
 tokens = {}
 sessions = bidict({})
 
@@ -34,7 +37,7 @@ def authenticate():
         access_token = keycloak_openid.token(
             grant_type='authorization_code',
             code=code,
-            redirect_uri="http://127.0.0.1:9111/authenticate")
+            redirect_uri=REDIRECT_URI)
         user_id = sessions.inverse[current_state]
         tokens[user_id] = access_token
         del sessions.inverse[current_state]

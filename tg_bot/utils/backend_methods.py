@@ -3,15 +3,11 @@ import os
 import time
 
 import requests
-
 from dotenv import load_dotenv
-from os import getenv
 
-# Load variables from the tg_conf.env file
-load_dotenv(dotenv_path="tg_conf.env")
+load_dotenv("./tg_conf.env")
 
-JAVA_BACKEND = getenv('JAVA_BACKEND')
-
+JAVA_BACKEND = os.getenv('JAVA_BACKEND')
 
 def get_products(message):
     params = {'product': message}
@@ -37,7 +33,7 @@ def get_remains(message):
     return None
 
 
-def get_forecast(message, n_months):
+def get_prediction(message, n_months):
     params = {'product': message, 'month': n_months}
     response = requests.get(JAVA_BACKEND + "/predict", params=params)
     if response.status_code // 100 == 2:
@@ -45,14 +41,14 @@ def get_forecast(message, n_months):
         message = data['message']
         if data['image1']:
             file_data1 = base64.b64decode(data['image1'])
-            file_name1 = "temp_files/" + str(time.time_ns()) + '.png'
+            file_name1 = "temp_files/" + str(time.time_ns()) + '1.png'
             with open(file_name1, 'wb') as f:
                 f.write(file_data1)
         else:
             file_name1 = None
         if data['image2']:
             file_data2 = base64.b64decode(data['image2'])
-            file_name2 = "temp_files/" + str(time.time_ns()) + '.png'
+            file_name2 = "temp_files/" + str(time.time_ns()) + '2.png'
             with open(file_name2, 'wb') as f:
                 f.write(file_data2)
         else:
@@ -100,10 +96,47 @@ def post_turnovers(file_path):
         return 'Ошибка при загрузке файла, попробуйте еще раз.'
 
 
-def get_json(product, id_user, predict, start_data, end_date):
-    params = {'product': product, "id_user": id_user, "predict": predict, "start_date": start_data, "end_date": end_date}
+def get_json(product, user_id, predict, start_data, end_date):
+    params = {'product': product, "id_user": user_id, "predict": predict, "start_date": start_data,
+              "end_date": end_date}
     response = requests.get(JAVA_BACKEND + "/get-json", params=params)
     if response.status_code // 100 == 2:
         data = response.json()["mp"]
         return data
+    return None
+
+
+def delete_track_product(user_id, product_name):
+    params = {'user_id': user_id, "product": product_name}
+    response = requests.delete(JAVA_BACKEND + "/monitoring/delete", params=params)
+    if response.status_code // 100 == 2:
+        return True
+    return False
+
+
+def add_track_product(user_id, product_name):
+    params = {'user_id': user_id, "product": product_name}
+    response = requests.post(JAVA_BACKEND + "/monitoring/add", params=params)
+    if response.status_code // 100 == 2:
+        return True
+    return False
+
+
+def get_stock_aware(user_id):
+    params = {'user_id': user_id}
+    response = requests.get(JAVA_BACKEND + "/monitoring/schedule", params=params)
+    if response.status_code // 100 == 2:
+        data = response.json()
+        product_list = data
+        return product_list
+    return None
+
+
+def get_users_tracks(user_id):
+    params = {'user_id': user_id}
+    response = requests.get(JAVA_BACKEND + "/monitoring/all", params=params)
+    if response.status_code // 100 == 2:
+        data = response.json()
+        product_list = data
+        return product_list
     return None
