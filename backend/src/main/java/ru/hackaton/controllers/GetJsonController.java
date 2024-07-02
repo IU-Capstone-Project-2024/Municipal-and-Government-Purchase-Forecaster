@@ -22,12 +22,36 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Map;
 
+/**
+ * REST контроллер для генерации JSON данных на основе параметров.
+ *
+ * Этот контроллер предоставляет эндпоинт для генерации JSON данных с использованием Python-скрипта на основе
+ * предоставленных параметров.
+ *
+ * Аннотация {@link RestController} указывает, что этот класс является контроллером Spring.
+ * Аннотация {@link RequestMapping} определяет базовый URL для всех эндпоинтов в этом контроллере.
+ * Аннотация {@link Tag} добавляет метаданные OpenAPI для этого контроллера.
+ */
 @RestController
 @RequestMapping("/get-json")
 @Slf4j
 @Tag(name = "Get Json Controller", description = "endpoint for generating json")
 public class GetJsonController {
     private int id = 1;
+
+    /**
+     * Эндпоинт для генерации JSON данных на основе параметров.
+     *
+     * Этот метод вызывает Python-скрипт для генерации JSON данных на основе предоставленных параметров
+     * и возвращает результат в виде объекта {@link ResponseEntity}.
+     *
+     * @param product Название продукта.
+     * @param idUser Идентификатор пользователя.
+     * @param predict Параметр предсказания.
+     * @param startDate Дата начала периода.
+     * @param endDate Дата окончания периода.
+     * @return Объект {@link ResponseEntity} с сгенерированными JSON данными или сообщением об ошибке.
+     */
     @GetMapping
     @Operation(summary = "Generate JSON data based on parameters", description = "Generates JSON data using a Python script based on provided parameters.")
     @ApiResponses(value = {
@@ -66,7 +90,6 @@ public class GetJsonController {
                 outputBuilder.append(s).append("\n");
             }
             message = outputBuilder.toString().trim();
-            //System.out.println(message);
             ObjectMapper objectMapper = new ObjectMapper();
             Map<String, Object> map = objectMapper.readValue(message, new TypeReference<>() {});
             log.info(map.toString());
@@ -77,10 +100,16 @@ public class GetJsonController {
         }
     }
 
+    /**
+     * Внутренний класс, представляющий ответ, содержащий JSON данные.
+     */
     @Data
     @AllArgsConstructor
     @NoArgsConstructor
     static class GetJsonResponse {
+        /**
+         * JSON данные в виде карты ключ-значение.
+         */
         Map<String, Object> mp;
     }
 }

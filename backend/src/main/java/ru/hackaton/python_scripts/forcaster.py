@@ -7,6 +7,8 @@ from time import time_ns
 from datetime import datetime
 from matplotlib import pyplot as plt
 from pmdarima import auto_arima
+import matplotlib.font_manager as font_manager
+import seaborn as sns
 
 from utils.data_scripts import get_mongo_collection, fetch_data, aggregate_data, create_dataframe, add_missing_dates, \
     mongo_find
@@ -16,7 +18,6 @@ ABSOLUTE_PATH = "/backend/src/main/java/ru/hackaton/python_scripts/"
 def purchase(months, forecast):
     """
     Рассчитывает сумму закупок за заданное количество месяцев.
-
     :param months: Количество месяцев
     :param forecast: Прогноз потребления
     :return: Сумма закупок
@@ -32,33 +33,35 @@ def purchase(months, forecast):
 def plot_forecast(df_forecast, filename):
     """
     Строит график прогноза потребления.
-
     :param df_forecast: DataFrame с прогнозом потребления
     """
-    plt.rcParams.update({
-        'font.size': 14,
-        'font.family': 'serif',
-        'axes.titlesize': 20,
-        'axes.labelsize': 16,
-        'xtick.labelsize': 12,
-        'ytick.labelsize': 12,
-        'figure.titlesize': 22
-    })
+
     plt.figure(figsize=(8, 7))
     if len(df_forecast) == 1:
         plt.xlim(-2, 2)
-    plt.bar(df_forecast['дата'].dt.strftime('%Y-%m'), df_forecast['прогноз'], color='blue', width=0.4, edgecolor='black')
-    plt.xlabel('Дата')
-    plt.ylabel('Прогноз потребления')
-    plt.title('Прогноз потребления на конец каждого квартала')
-    plt.xticks(rotation=45, ha='center')
+    bars = sns.barplot(x='дата', y='прогноз', hue='дата', palette='Reds', data=df_forecast, legend=False)
+
+    font = font_manager.FontProperties(family='serif', style='italic')
+    font1 = font_manager.FontProperties(family='serif',style='italic', size=16)
+
+    # Add labels to the bars, using the x-axis values and y-axis values
+    for p in bars.patches:
+        plt.text(p.get_x() + p.get_width()/2., p.get_height(), f'{p.get_height():.2f}',
+                 ha='center', va='bottom', fontsize=10, fontproperties=font)
+
+    plt.xlabel('Дата', fontsize=14, fontproperties=font)
+    plt.ylabel('Прогноз потребления', ha= 'center', fontsize=14, fontproperties=font)
+    plt.title('Прогноз потребления на конец каждого квартала', fontproperties=font1)
+
+    plt.xticks(rotation=45, ha='center', fontsize=10, fontproperties=font)
+    plt.yticks(fontsize=12, fontstyle= 'italic',fontproperties=font)
+
     plt.savefig(filename)
 
 
 def make_forecast(name, months):
     """
     Делает прогноз потребления на заданное количество месяцев.
-
     :param name: Название продукта
     :param months: Количество месяцев для прогноза
     :return: Прогноз потребления или сообщение об ошибке
@@ -74,21 +77,28 @@ def make_forecast(name, months):
 
     df = add_missing_dates(df, dates, 'Kredit')
     df.sort_values(by='дата', inplace=True)
-    plt.rcParams.update({
-        'font.size': 14,
-        'font.family': 'serif',
-        'axes.titlesize': 20,
-        'axes.labelsize': 16,
-        'xtick.labelsize': 12,
-        'ytick.labelsize': 12,
-        'figure.titlesize': 22
-    })
+
     plt.figure(figsize=(8, 7))
-    plt.bar(df['дата'].dt.strftime('%Y-%m'), df['Kredit'], color='blue', width=0.4)
-    plt.xlabel('Дата')
-    plt.ylabel('Потребление')
-    plt.title('Известное потребление за период в конце квартала')
-    plt.xticks(rotation=45, ha='center')
+
+
+    bars = sns.barplot(x='дата', y='Kredit', hue='дата', palette='Reds', data=df, legend=False)
+
+    font = font_manager.FontProperties(family='serif', style='italic')
+    font1 = font_manager.FontProperties(family='serif',style='italic', size=16)
+
+    # Add labels to the bars, using the x-axis values and y-axis values
+    for p in bars.patches:
+        plt.text(p.get_x() + p.get_width()/2., p.get_height(), f'{p.get_height():.2f}',
+                 ha='center', va='bottom', fontsize=10, fontproperties=font)
+
+    plt.xlabel('Дата', fontsize=14, fontproperties=font)
+    plt.ylabel('Потребление', ha= 'center', fontsize=14, fontproperties=font)
+    plt.title('Известное потребление за период в конце квартала', fontproperties=font1)
+
+    plt.xticks(rotation=45, ha='center', fontsize=10, fontproperties=font)
+    plt.yticks(fontsize=12, fontstyle= 'italic',fontproperties=font)
+
+
     known_consume_filename = ABSOLUTE_PATH + "images/" + str(time_ns()) + ".png"
     plt.savefig(known_consume_filename)
     if pd.notna(df['Kredit']).sum() == 0 or df['Kredit'].max() == 0:
@@ -117,23 +127,25 @@ def make_forecast(name, months):
             for month in range(2, until_month - 1, -1):
                 monthly_consuming.loc[len(monthly_consuming)] = [row['дата'] - pd.offsets.MonthEnd(month),
                                                                  avg_consuming]
-        plt.rcParams.update({
-            'font.size': 14,
-            'font.family': 'serif',
-            'axes.titlesize': 20,
-            'axes.labelsize': 16,
-            'xtick.labelsize': 12,
-            'ytick.labelsize': 12,
-            'figure.titlesize': 22
-        })
+
         plt.figure(figsize=(8, 7))
         if months == 1:
             plt.xlim(-2, 2)
         plt.bar(monthly_consuming['дата'].dt.strftime('%Y-%m'), monthly_consuming['прогноз'], color='blue', width=0.4)
-        plt.xlabel('Дата')
-        plt.ylabel('Прогноз потребления')
-        plt.title('Прогноз потребления по месяцам')
-        plt.xticks(rotation=45, ha='center')
+
+        bars = sns.barplot(x='дата', y='прогноз', hue='дата', palette='Reds', data=monthly_consuming, legend=False)
+        font = font_manager.FontProperties(family='serif', style='italic')
+        font1 = font_manager.FontProperties(family='serif',style='italic', size=16)
+        # Add labels to the bars, using the x-axis values and y-axis values
+        for p in bars.patches:
+            plt.text(p.get_x() + p.get_width()/2., p.get_height(), f'{p.get_height():.2f}',
+                     ha='center', va='bottom', fontsize=10, fontproperties=font)
+        plt.xlabel('Дата', fontsize=14, fontproperties=font)
+        plt.ylabel('Прогноз потребления', ha= 'center', fontsize=14, fontproperties=font)
+        plt.title('Прогноз потребления по месяцам', fontproperties=font1)
+        plt.xticks(rotation=45, ha='center', fontsize=10, fontproperties=font)
+        plt.yticks(fontsize=12, fontstyle= 'italic',fontproperties=font)
+
         plt.savefig(predict_consume_filename)
 
     remainings_data = mongo_find({"Название": name})

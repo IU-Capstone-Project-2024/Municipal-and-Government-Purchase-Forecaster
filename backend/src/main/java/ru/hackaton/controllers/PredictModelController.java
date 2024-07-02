@@ -14,12 +14,32 @@ import org.springframework.web.bind.annotation.*;
 
 import java.io.*;
 
+/**
+ * REST контроллер для предсказания моделей и возврата соответствующих изображений.
+ *
+ * Этот контроллер предоставляет эндпоинт для запуска предсказания для указанного продукта и месяца
+ * и возвращает сообщение с результатом и до двух изображений, если они доступны.
+ *
+ * Аннотация {@link RestController} указывает, что этот класс является контроллером Spring.
+ * Аннотация {@link RequestMapping} определяет базовый URL для всех эндпоинтов в этом контроллере.
+ * Аннотация {@link Tag} добавляет метаданные OpenAPI для этого контроллера.
+ */
 @RestController
 @RequestMapping("/predict")
 @Slf4j
 @Tag(name = "Predict Model Controller", description = "Endpoint for predicting model outcomes and returning relevant images")
 public class PredictModelController {
 
+    /**
+     * Эндпоинт для предсказания моделей на основе продукта и месяца.
+     *
+     * Этот метод вызывает Python-скрипт для выполнения предсказания и возвращает результат
+     * в виде сообщения и до двух изображений.
+     *
+     * @param product Название продукта.
+     * @param month Номер месяца.
+     * @return Объект {@link ResponseEntity} с предсказанием и изображениями или сообщением об ошибке.
+     */
     @GetMapping
     @Operation(summary = "Predict model outcomes", description = "Runs a prediction for the specified product and month, returning a message and up to two images.")
     @ApiResponses(value = {
@@ -92,6 +112,13 @@ public class PredictModelController {
         }
     }
 
+    /**
+     * Читает содержимое файла в массив байтов.
+     *
+     * @param filePath Путь к файлу.
+     * @return Массив байтов, содержащий данные файла.
+     * @throws IOException Если происходит ошибка при чтении файла.
+     */
     private byte[] readFileToByteArray(String filePath) throws IOException {
         File imgFile = new File(filePath);
         byte[] fileBytes = new byte[(int) imgFile.length()];
@@ -101,14 +128,26 @@ public class PredictModelController {
         return fileBytes;
     }
 
+    /**
+     * Внутренний класс, представляющий ответ, содержащий предсказание и изображения.
+     */
     @Data
     @AllArgsConstructor
     @Schema(description = "Response containing the prediction message and images (if available)")
     static class PredictionResponse {
+        /**
+         * Сообщение с результатом предсказания.
+         */
         @Schema(description = "Message detailing the result of the prediction")
         private String message;
+        /**
+         * Первое изображение в виде массива байтов, если доступно.
+         */
         @Schema(description = "First image file as byte array, if available")
         private byte[] image1;
+        /**
+         * Второе изображение в виде массива байтов, если доступно.
+         */
         @Schema(description = "Second image file as byte array, if available")
         private byte[] image2;
     }

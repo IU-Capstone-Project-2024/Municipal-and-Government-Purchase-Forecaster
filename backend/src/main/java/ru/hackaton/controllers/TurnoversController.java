@@ -20,6 +20,15 @@ import ru.hackaton.parsers.TurnoversParser;
 
 import java.io.File;
 
+/**
+ * REST контроллер для загрузки файлов оборотов в формате XLSX.
+ *
+ * Этот контроллер предоставляет эндпоинт для загрузки и обработки файлов оборотов.
+ *
+ * Аннотация {@link RestController} указывает, что этот класс является контроллером Spring.
+ * Аннотация {@link RequestMapping} определяет базовый URL для всех эндпоинтов в этом контроллере.
+ * Аннотация {@link Tag} добавляет метаданные OpenAPI для этого контроллера.
+ */
 @RestController
 @RequestMapping("/upload")
 @Slf4j
@@ -35,6 +44,15 @@ public class TurnoversController {
     @Autowired
     TurnoversParser parser;
 
+    /**
+     * Эндпоинт для загрузки файла оборотов в формате XLSX.
+     *
+     * Этот метод принимает файл в формате XLSX, сохраняет его с оригинальным именем
+     * и обрабатывает с использованием парсера оборотов.
+     *
+     * @param file Файл в формате XLSX для загрузки.
+     * @return Объект {@link ResponseEntity} с сообщением об успехе или ошибке.
+     */
     @PostMapping("/turnovers")
     @Operation(summary = "Upload an XLSX file", description = "Upload an XLSX file and save it with the original filename",
             requestBody = @RequestBody(content = @Content(mediaType = "multipart/form-data",
@@ -55,6 +73,9 @@ public class TurnoversController {
         return ResponseEntity.ok(SUCCESS_MESSAGE);
     }
 
+    /**
+     * Класс-запрос для загрузки файла в формате XLSX.
+     */
     public static class UploadXLSXRequest {
         @Schema(type = "string", format = "binary", description = "XLSX file to upload")
         public MultipartFile file;

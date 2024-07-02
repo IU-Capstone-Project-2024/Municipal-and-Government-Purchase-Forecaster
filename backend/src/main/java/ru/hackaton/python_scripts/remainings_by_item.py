@@ -4,6 +4,8 @@ import sys
 from time import time_ns
 from matplotlib import pyplot as plt
 from dotenv import load_dotenv
+import matplotlib.font_manager as font_manager
+import seaborn as sns
 
 # Получаем текущий каталог и корень проекта для установки правильного пути системы.
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -21,10 +23,8 @@ from utils.data_scripts import get_mongo_collection, fetch_data, aggregate_data,
 def make_plot_of_remainings(name):
     """
     Генерирует график остатков товара по времени для заданного названия продукта и отображает его.
-
     Аргументы:
         name (str): Название продукта, для которого необходимо сгенерировать график.
-
     Возвращает:
         dict: Содержит последнюю дату и соответствующий 'остаток'.
     """
@@ -36,25 +36,29 @@ def make_plot_of_remainings(name):
     if df.empty:
         return "Извините, данные оборотной ведомости не найдены для данного товара, невозможно предсказать потребление."
 
-    plt.rcParams.update({
-        'font.size': 14,
-        'font.family': 'serif',
-        'axes.titlesize': 20,
-        'axes.labelsize': 16,
-        'xtick.labelsize': 12,
-        'ytick.labelsize': 12,
-        'figure.titlesize': 22
-    })
 
     df = add_missing_dates(df, dates, 'остаток')
     df.sort_values(by='дата', inplace=True)
 
     plt.figure(figsize=(8, 7))
-    plt.bar(df['дата'].dt.strftime('%Y-%m'), df['остаток'], color='blue')
-    plt.xlabel('Дата')
-    plt.ylabel('Остатки')
-    plt.title('Остатки за период в конце квартала')
-    plt.xticks(rotation=45, ha='center')
+    bars = sns.barplot(x='дата', y='остаток', hue='дата', palette='Reds', data=df, legend=False)
+
+    font = font_manager.FontProperties(family='serif', style='italic')
+    font1 = font_manager.FontProperties(family='serif',style='italic', size=16)
+
+    # Add labels to the bars, using the x-axis values and y-axis values
+    for p in bars.patches:
+        plt.text(p.get_x() + p.get_width()/2., p.get_height(), f'{p.get_height():.2f}',
+                 ha='center', va='bottom', fontsize=10, fontproperties=font)
+
+    plt.xlabel('Дата', fontsize=14, fontproperties=font)
+    plt.ylabel('Остатки', ha= 'center', fontsize=14, fontproperties=font)
+    plt.title('Остатки за период в конце квартала', fontproperties=font1)
+
+    plt.xticks(rotation=45, ha='center', fontsize=10, fontproperties=font)
+    plt.yticks(fontsize=12, fontstyle= 'italic',fontproperties=font)
+
+
     file_name = "/backend/src/main/java/ru/hackaton/python_scripts/images/" + str(time_ns()) + '.png'
     plt.savefig(file_name)
 

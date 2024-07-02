@@ -20,6 +20,16 @@ import ru.hackaton.parsers.StockRemainingsParser;
 
 import java.io.File;
 
+/**
+ * REST контроллер для загрузки новых остатков продуктов.
+ *
+ * Этот контроллер предоставляет эндпоинт для загрузки файлов в формате XLSX, содержащих информацию
+ * о новых остатках продуктов. Загруженные файлы обрабатываются и сохраняются с оригинальным именем.
+ *
+ * Аннотация {@link RestController} указывает, что этот класс является контроллером Spring.
+ * Аннотация {@link RequestMapping} определяет базовый URL для всех эндпоинтов в этом контроллере.
+ * Аннотация {@link Tag} добавляет метаданные OpenAPI для этого контроллера.
+ */
 @Slf4j
 @RestController
 @RequestMapping("/upload")
@@ -35,6 +45,15 @@ public class AddNewRemainingsController {
     @Autowired
     private FromMultipartToFile fromMultipartToFile;
 
+    /**
+     * Эндпоинт для загрузки файлов в формате XLSX.
+     *
+     * Этот метод принимает файл в формате XLSX и сохраняет его с оригинальным именем.
+     * Загруженный файл затем обрабатывается для извлечения информации о новых остатках продуктов.
+     *
+     * @param file Файл в формате XLSX для загрузки.
+     * @return Объект {@link ResponseEntity} с результатом загрузки: сообщение об успехе или неудаче.
+     */
     @PostMapping("/remainings")
     @Operation(summary = "Upload an XLSX file", description = "Upload an XLSX file and save it with the original filename",
             requestBody = @RequestBody(content = @Content(mediaType = "multipart/form-data",
@@ -57,6 +76,9 @@ public class AddNewRemainingsController {
         return ResponseEntity.ok(SUCCESS_MESSAGE);
     }
 
+    /**
+     * Внутренний класс, представляющий запрос на загрузку файла XLSX.
+     */
     public static class UploadXlsxRequest {
         @Schema(type = "string", format = "binary", description = "XLSX file to upload")
         public MultipartFile file;

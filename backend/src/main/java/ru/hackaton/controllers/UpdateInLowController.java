@@ -19,6 +19,15 @@ import java.time.format.DateTimeParseException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * REST контроллер для проверки обновлений в законодательстве.
+ *
+ * Этот контроллер предоставляет эндпоинт для проверки и возврата информации об обновлениях в законодательстве.
+ *
+ * Аннотация {@link RestController} указывает, что этот класс является контроллером Spring.
+ * Аннотация {@link RequestMapping} определяет базовый URL для всех эндпоинтов в этом контроллере.
+ * Аннотация {@link Tag} добавляет метаданные OpenAPI для этого контроллера.
+ */
 @Slf4j
 @RestController
 @RequestMapping("/law-update")
@@ -29,6 +38,14 @@ public class UpdateInLowController {
     @Autowired
     private FZ44Parser fz44Parser;
 
+    /**
+     * Эндпоинт для проверки обновлений в законодательстве.
+     *
+     * Этот метод вызывает парсер для получения информации об обновлениях и анализирует полученные данные,
+     * чтобы определить, были ли изменения в законодательстве с последней проверки.
+     *
+     * @return Объект {@link ResponseEntity} с информацией об обновлениях или сообщением об их отсутствии.
+     */
     @GetMapping
     @Operation(summary = "Check for law updates", description = "Check for updates in law and return information if available")
     @ApiResponse(responseCode = "200", description = "Successfully retrieved law update information", content = @Content(mediaType = "text/plain", schema = @Schema(type = "string")))

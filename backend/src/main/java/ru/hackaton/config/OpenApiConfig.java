@@ -7,8 +7,20 @@ import io.swagger.v3.oas.models.info.License;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+/**
+ * Конфигурационный класс для настройки OpenAPI/Swagger.
+ *
+ * Этот класс используется для настройки OpenAPI спецификации, которая описывает API вашего сервиса.
+ *
+ * Аннотация {@link Configuration} указывает, что этот класс является конфигурационным классом Spring.
+ */
 @Configuration
 public class OpenApiConfig {
+    /**
+     * Настраивает экземпляр {@link OpenAPI} с пользовательской информацией о API.
+     *
+     * @return настроенный экземпляр {@link OpenAPI}
+     */
     @Bean
     public OpenAPI customOpenAPI() {
         return new OpenAPI()

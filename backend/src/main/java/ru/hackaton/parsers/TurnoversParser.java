@@ -13,6 +13,7 @@ import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.bson.Document;
 import org.springframework.stereotype.Component;
+import ru.hackaton.config.ApplicationConfig;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -26,11 +27,32 @@ import java.util.regex.Pattern;
 @Data
 @Slf4j
 public class TurnoversParser {
-    private static MongoClient client = MongoClients.create("mongodb://localhost:27017");
-    private static MongoDatabase db = client.getDatabase("stock_remainings");
-    private static MongoCollection<Document> collection = db.getCollection("Обороты по счету");
+    final ApplicationConfig config;
+    private static MongoClient client;
+    private static MongoDatabase db;
+    private static MongoCollection<Document> collection;
+    private static final String EXCEPTION_LOG = "Exception occurred: {}";
+    private static final String SUCCESS_UPLOAD = "Файл успешно загружен";
 
+    /**
+     * Конструктор для инициализации компонента.
+     *
+     * @param config конфигурация приложения, содержащая URL для подключения к MongoDB
+     */
+    public TurnoversParser(ApplicationConfig config) {
+        this.config = config;
+        client = MongoClients.create(config.getMongoUrl());
+        db = client.getDatabase("stock_remainings");
+        collection = db.getCollection("Оборотная ведомость");
+    }
+
+    /**
+     * Метод для обработки файла с оборотами.
+     *
+     * @param file файл для обработки
+     */
     public void processFile(File file) {
+        log.info("Пришел новый файл turnovers: {}", file.getName());
         if (file.getName().contains("сч_21")) {
             process21(file);
         } else if (file.getName().contains("сч_105")) {
@@ -38,11 +60,17 @@ public class TurnoversParser {
         } else if (file.getName().contains("сч_101")) {
             process101(file);
         } else {
-            System.out.println("Skipping " + file.getName() + ", no matching function found");
+            log.error("Skipping {}, no matching function found", file.getName());
         }
     }
 
+    /**
+     * Обработка файла с кодом счёта 105.
+     *
+     * @param file файл для обработки
+     */
     private void process105(File file) {
+        log.info("Файл сч 105");
         try (FileInputStream fis = new FileInputStream(file)) {
             Workbook workbook = new XSSFWorkbook(fis);
             Sheet sheet = workbook.getSheetAt(0);
@@ -52,12 +80,13 @@ public class TurnoversParser {
             String year = quarterYear[1];
             String subgroup = null;
 
-            int i = 3;
+            int i = 2;
             while (i <= sheet.getLastRowNum()) {
                 Row row = sheet.getRow(i);
 
-                if (row.getCell(0) == null) {
-                    if(row.getCell(1) != null){
+                if (row.getCell(0) == null || row.getCell(0).toString().isEmpty()) {
+
+                    if(row.getCell(1) != null && !row.getCell(1).getStringCellValue().isEmpty()){
                         subgroup = row.getCell(1).getStringCellValue().split(" ")[0];
                     } else{
                         i++;
@@ -90,25 +119,27 @@ public class TurnoversParser {
 
                     Map<String, Object> data = new HashMap<>();
                     data.put("name", normalizeName(name));
+                    data.put("единиц до", countBeforeDebet);
                     data.put("цена до", priceBeforeDebet);
-                    data.put("единицы до", countBeforeDebet);
-                    data.put("цена во деб", priceInDebet);
-                    data.put("единицы во деб", countInDebet);
-                    data.put("цена во кред", priceInKredit);
-                    data.put("единицы во кред", countInKredit);
+                    data.put("цена дебет во", priceInDebet);
+                    data.put("единиц дебет во", countInDebet);
+                    data.put("цена кредит во", priceInKredit);
+                    data.put("единиц кредит во", countInKredit);
                     data.put("цена после", priceAfterDebet);
-                    data.put("единицы после", countAfterDebet);
+                    data.put("единиц после", countAfterDebet);
                     data.put("группа", 105);
                     data.put("подгруппа", subgroup);
                     data.put("квартал", quarter);
                     data.put("год", year);
+                    data.put("единица измерения", row.getCell(4).getStringCellValue());
 
                     insertDataToDb(data);
                 }
                 i++;
             }
+            log.info(SUCCESS_UPLOAD);
         } catch (IOException e) {
-            e.printStackTrace();
+            log.error(EXCEPTION_LOG, e.getMessage());
         }
     }
 
@@ -135,6 +166,16 @@ public class TurnoversParser {
         return Double.isNaN(value);
     }
 
+    /**
+     * Общая логика обработки данных из листа Excel.
+     *
+     * @param sheet     лист Excel
+     * @param quarter   квартал
+     * @param year      год
+     * @param group     код группы (21, 101, 105)
+     * @param rowIndex  индекс начала обработки строк
+     * @param nameIndex индекс столбца с наименованием
+     */
     private void processCommonLogic(Sheet sheet, String quarter, String year, int group, int rowIndex, int nameIndex) {
         String subgroup = null;
         int index = rowIndex;
@@ -177,6 +218,15 @@ public class TurnoversParser {
                 data.put("подгруппа", subgroup);
                 data.put("квартал", quarter);
                 data.put("год", year);
+                data.put("единиц до", countBeforeDebet);
+                data.put("цена до", priceBeforeDebet);
+                data.put("цена дебет во", priceInDebet);
+                data.put("единиц дебет во", countInDebet);
+                data.put("цена кредит во", priceInKredit);
+                data.put("единиц кредит во", countInKredit);
+                data.put("цена после", priceAfterDebet);
+                data.put("единиц после", countAfterDebet);
+                data.put("единица измерения", "шт.");
                 // Insert to DB
                 insertDataToDb(data);
                 index += 3;
@@ -185,6 +235,12 @@ public class TurnoversParser {
         }
     }
 
+    /**
+     * Извлечение квартала и года из имени файла.
+     *
+     * @param filename имя файла
+     * @return массив строк с кварталом и годом
+     */
     private String[] extractQuarterYear(String filename) {
         Pattern quarterPattern = Pattern.compile("(\\d+) кв\\.");
         Pattern yearPattern = Pattern.compile("кв\\. (\\d+)");
@@ -195,27 +251,46 @@ public class TurnoversParser {
         return new String[]{quarter, year};
     }
 
+    /**
+     * Вставка данных в MongoDB.
+     *
+     * @param data данные для вставки
+     */
     private void insertDataToDb(Map<String, Object> data) {
         collection.insertOne(new Document(data));
     }
 
+    /**
+     * Обработка файла с кодом счёта 21.
+     *
+     * @param file файл для обработки
+     */
     private void process21(File file) {
+        log.info("Файл сч 21");
         try (FileInputStream fis = new FileInputStream(file); Workbook workbook = new XSSFWorkbook(fis)) {
             Sheet sheet = workbook.getSheetAt(0);
             String[] quarterYear = extractQuarterYear(file.getName());
             processCommonLogic(sheet, quarterYear[0], quarterYear[1], 21, 9, 0);
+            log.info(SUCCESS_UPLOAD);
         } catch (IOException e) {
-            e.printStackTrace();
+            log.error(EXCEPTION_LOG, e.getMessage());
         }
     }
 
+    /**
+     * Обработка файла с кодом счёта 101.
+     *
+     * @param file файл для обработки
+     */
     private void process101(File file) {
+        log.info("Файл сч 101");
         try (FileInputStream fis = new FileInputStream(file); Workbook workbook = new XSSFWorkbook(fis)) {
             Sheet sheet = workbook.getSheetAt(0);
             String[] quarterYear = extractQuarterYear(file.getName());
             processCommonLogic(sheet, quarterYear[0], quarterYear[1], 101, 9, 0);
+            log.info(SUCCESS_UPLOAD);
         } catch (IOException e) {
-            e.printStackTrace();
+            log.error(EXCEPTION_LOG, e.getMessage());
         }
     }
 
